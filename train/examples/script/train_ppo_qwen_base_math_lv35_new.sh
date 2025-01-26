@@ -1,6 +1,10 @@
 
 HDFS_HOME=TO_BE_DEFINED
-RUN_NAME=Qwen2.5-Math-7B_ppo_from_base_math_lv35
+RUN_NAME=Qwen2.5-Math-7B_ppo_from_base_math
+
+export HF_HUB_ENABLE_HF_TRANSFER=1
+[ -z "${WANDB_API_KEY}" ] && { echo "Error: WANDB_API_KEY is not set"; exit 1; }
+
 
 python3 openrlhf/cli/train_ppo_ray_box.py \
     --ref_num_nodes 1 \
@@ -14,8 +18,8 @@ python3 openrlhf/cli/train_ppo_ray_box.py \
     --vllm_num_engines 16 \
     --vllm_tensor_parallel_size 1 \
     --colocate_actor_ref \
-    --pretrain $HDFS_HOME/model_hub/models--Qwen--Qwen2.5-Math-7B/snapshots/b101308fe89651ea5ce025f25317fea6fc07e96e \
-    --save_path $HDFS_HOME/checkpoints/$RUN_NAME \
+    --pretrain Qwen/Qwen2.5-Math-7B \
+    --save_path /mnt/local_storage/openrlhf/checkpoint/$RUN_NAME/final \
     --micro_train_batch_size 2 \
     --train_batch_size 128 \
     --micro_rollout_batch_size 2 \
@@ -32,14 +36,17 @@ python3 openrlhf/cli/train_ppo_ray_box.py \
     --actor_learning_rate 5e-7 \
     --critic_learning_rate 9e-6 \
     --init_kl_coef 0.01 \
-    --prompt_data  data/math_level3to5_data_processed_with_qwen_prompt.json \
+    --prompt_data /home/ray/default/data/math_train_data_processed_with_qwen_prompt.json \
     --input_key input \
     --normalize_reward \
     --flash_attn \
     --gradient_checkpointing \
-    --save_steps 4 \
+    --save_steps 20 \
     --load_checkpoint \
-    --use_wandb YOUR_WANDB_KEY \
+    --use_wandb $WANDB_API_KEY \
     --wandb_run_name $RUN_NAME \
-    --ckpt_path $HDFS_HOME/checkpoints/$RUN_NAME  \
+    --ckpt_path /mnt/local_storage/openrlhf/checkpoint/$RUN_NAME/ckpt \
     --max_ckpt_num 20000
+
+
+    # --pretrain $HDFS_HOME/model_hub/models--Qwen--Qwen2.5-Math-7B/snapshots/b101308fe89651ea5ce025f25317fea6fc07e96e \
